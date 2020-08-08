@@ -14,3 +14,7 @@ def mongo_config():
 
 def mongo_uri():
     return 'mongodb://' + config['host'] + ':' + str(config['port']) + '/' + config['database']
+
+
+def collection_name():
+    return str(config['collection_name'])
