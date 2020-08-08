@@ -8,9 +8,9 @@ config = {
 }
 
 
-def get_mongo_config():
+def mongo_config():
     return config
 
 
-def get_mongo_uri():
+def mongo_uri():
     return 'mongodb://' + config['host'] + ':' + str(config['port']) + '/' + config['database']

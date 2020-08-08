@@ -1,9 +1,9 @@
 import csv
-import database
 
+from database import mongo_config
 from pymongo import MongoClient
 
-db_config = database.get_mongo_config()
+db_config = mongo_config()
 
 client = MongoClient(db_config['host'], db_config['port'])
 
