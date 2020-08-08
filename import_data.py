@@ -30,8 +30,8 @@ try:
 
         for row in csv_reader:
 
-            if row['idade']:
-                row['idade'] = int(float(row['idade']))
+            if row['idade_ate_31_12_2016']:
+                row['idade_ate_31_12_2016'] = int(float(row['idade_ate_31_12_2016']))
 
             if row['ra']:
                 row['ra'] = int(float(row['ra']))
