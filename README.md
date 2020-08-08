@@ -1,2 +1,0 @@
-# laura-api
-API Challenge
