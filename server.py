@@ -63,6 +63,36 @@ def get_student(student_ra):
     return (json_encode(student), 200)
 
 
+@app.route("/students/<int:student_ra>", methods=['DELETE'])
+def delete_student(student_ra):
+
+    if not student_ra:
+        abort(404)
+
+    params = request.args
+
+    required_params = [
+        'campus'
+    ]
+
+    if (is_missing_required_params(params, required_params)):
+        abort(400)
+
+    student = collection.delete_one({
+        '$and': [
+            {'ra': {'$eq': student_ra}},
+            {'campus': {'$eq': params.get('campus')}}
+        ]
+    })
+
+    deleted_count = student.deleted_count
+
+    if (deleted_count <= 0):
+        return (json_encode({}), 202)
+
+    return (json_encode({'deleted_count': deleted_count}), 200)
+
+
 @app.route("/students", methods=['POST'])
 def post_student():
 
@@ -86,9 +116,9 @@ def post_student():
     data['ra'] = int(data['ra'])
     data['idade_ate_31_12_2016'] = int(data['idade_ate_31_12_2016'])
 
-    result = collection.insert(data)
+    inserted_id = collection.insert_one(data).inserted_id
 
-    return (json_encode({result}), 201)
+    return (json_encode({inserted_id}), 201)
 
 
 @app.route("/students/total", methods=['GET'])
