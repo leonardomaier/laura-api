@@ -41,12 +41,39 @@ def get_students():
             {'modalidade': {'$eq': params.get('modalidade')}},
             {'data_inicio': {
                 '$gte': params.get('data_inicio'),
-                '$lt': params.get('data_fim')
+                '$lte': params.get('data_fim')
             }}
         ]
     }).sort([('data_inicio', -1)])
 
     return (json_encode(students), 200)
+
+
+@app.route("/students/total", methods=['GET'])
+def get_total_students():
+
+    params = request.args
+
+    required_params = [
+        'campus',
+        'data_inicio',
+        'data_fim'
+    ]
+
+    if (is_missing_required_params(params, required_params)):
+        abort(400)
+
+    total_students = collection.find({
+        'campus': {
+            '$eq': params.get('campus')
+        },
+        'data_inicio': {
+            '$gte': params.get('data_inicio'),
+            '$lte': params.get('data_fim')
+        }
+    }).count()
+
+    return json_encode({'total': total_students})
 
 
 @app.route("/courses", methods=['GET'])
