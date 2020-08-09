@@ -1,8 +1,8 @@
 from database import mongo_uri, collection_name
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request
 from flask_pymongo import PyMongo, abort
-from bson.json_util import dumps, loads, RELAXED_JSON_OPTIONS
 from utils import json_encode, is_missing_required_params
+from functools import wraps
 
 import json
 
@@ -47,6 +47,34 @@ def get_students():
     }).sort([('data_inicio', -1)])
 
     return (json_encode(students), 200)
+
+
+@app.route("/students", methods=['POST'])
+def post_student():
+
+    data = request.json
+
+    required_params = [
+        'nome',
+        'idade_ate_31_12_2016',
+        'ra',
+        'campus',
+        'municipio',
+        'curso',
+        'modalidade',
+        'nivel_do_curso',
+        'data_inicio'
+    ]
+
+    if (is_missing_required_params(data, required_params)):
+        abort(400)
+
+    data['ra'] = int(data['ra'])
+    data['idade_ate_31_12_2016'] = int(data['idade_ate_31_12_2016'])
+
+    result = collection.insert(data)
+
+    return (json_encode({result}), 200)
 
 
 @app.route("/students/total", methods=['GET'])
