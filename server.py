@@ -49,6 +49,22 @@ def get_students():
     return (json_encode(students), 200)
 
 
+@app.route("/students/<int:student_ra>", methods=['GET'])
+def get_student(student_ra):
+
+    if not student_ra:
+        abort(404)
+
+    student = collection.find_one({
+        'ra': {'$eq': student_ra}
+    })
+
+    if not student:
+        abort(404)
+
+    return (json_encode(student), 200)
+
+
 @app.route("/students", methods=['POST'])
 def post_student():
 
@@ -74,7 +90,7 @@ def post_student():
 
     result = collection.insert(data)
 
-    return (json_encode({result}), 200)
+    return (json_encode({result}), 201)
 
 
 @app.route("/students/total", methods=['GET'])
