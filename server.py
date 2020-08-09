@@ -1,9 +1,9 @@
 from database import mongo_uri, collection_name
-from flask import Flask, request, jsonify
-from flask_pymongo import PyMongo
+from flask import Flask, request, jsonify, make_response
+from flask_pymongo import PyMongo, abort
 from bson.json_util import dumps, loads, RELAXED_JSON_OPTIONS
 
-from utils import json_encode
+from utils import json_encode, is_missing_required_params
 
 import json
 
@@ -28,19 +28,14 @@ def get_students():
 
     params = request.args
 
-    errors = []
+    required_params = [
+        'modalidade',
+        'data_inicio',
+        'data_final'
+    ]
 
-    if 'modalidade' not in params:
-        errors.append({'message': 'modalidade param is missing'})
-
-    if 'data_inicio' not in params:
-        errors.append({'message': 'data_inicio param is missing'})
-
-    if 'data_final' not in params:
-        errors.append({'message': 'data_final param is missing'})
-
-    if len(errors):
-        return json_encode({'errors': errors})
+    if (is_missing_required_params(params, required_params)):
+        abort(400)
 
     students = collection.find({
         '$and': [
@@ -52,7 +47,7 @@ def get_students():
         ]
     })
 
-    return json_encode(students)
+    return (json_encode(students), 200)
 
 
 @app.route("/courses", methods=['GET'])
@@ -60,13 +55,12 @@ def get_courses():
 
     params = request.args
 
-    errors = []
+    required_params = [
+        'campus'
+    ]
 
-    if 'campus' not in params:
-        errors.append({'message': 'campus param is missing'})
-
-    if len(errors):
-        return json_encode({'errors': errors})
+    if (is_missing_required_params(params, required_params)):
+        abort(400)
 
     courses = collection.distinct('curso', {
         '$and': [
@@ -75,7 +69,7 @@ def get_courses():
         ]
     })
 
-    return json_encode(courses)
+    return (json_encode(courses), 200)
 
 
 app.run()
