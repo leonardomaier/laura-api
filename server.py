@@ -4,8 +4,6 @@ from flask_pymongo import PyMongo, abort
 from utils import json_encode, is_missing_required_params
 from functools import wraps
 
-import json
-
 app = Flask(__name__)
 
 app.config['MONGO_URI'] = mongo_uri()
