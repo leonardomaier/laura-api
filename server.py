@@ -2,7 +2,6 @@ from database import mongo_uri, collection_name
 from flask import Flask, request, jsonify, make_response
 from flask_pymongo import PyMongo, abort
 from bson.json_util import dumps, loads, RELAXED_JSON_OPTIONS
-
 from utils import json_encode, is_missing_required_params
 
 import json
@@ -31,7 +30,7 @@ def get_students():
     required_params = [
         'modalidade',
         'data_inicio',
-        'data_final'
+        'data_fim'
     ]
 
     if (is_missing_required_params(params, required_params)):
@@ -42,7 +41,7 @@ def get_students():
             {'modalidade': {'$eq': params.get('modalidade')}},
             {'data_inicio': {
                 '$gte': params.get('data_inicio'),
-                '$lt': params.get('data_final')
+                '$lt': params.get('data_fim')
             }}
         ]
     }).sort([('data_inicio', -1)])
