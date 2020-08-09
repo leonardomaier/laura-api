@@ -62,7 +62,18 @@ def get_courses():
 
     errors = []
 
-    courses = collection.distinct('curso', {'curso': {'$ne': None}})
+    if 'campus' not in params:
+        errors.append({'message': 'campus param is missing'})
+
+    if len(errors):
+        return json_encode({'errors': errors})
+
+    courses = collection.distinct('curso', {
+        '$and': [
+            {'campus': {'$eq': params.get('campus')}},
+            {'curso': {'$ne': None}}
+        ]
+    })
 
     return json_encode(courses)
 
