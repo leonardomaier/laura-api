@@ -45,7 +45,7 @@ def get_students():
                 '$lt': params.get('data_final')
             }}
         ]
-    })
+    }).sort([('data_inicio', -1)])
 
     return (json_encode(students), 200)
 
