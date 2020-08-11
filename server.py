@@ -190,15 +190,15 @@ def get_courses():
 
     courses = collection.aggregate([
         {'$project': {'_id': 0, 'campus': 1, 'cursos': 1}},
-        {"$unwind": "$cursos"},
-        {"$match": {"cursos.campus": params.get('campus').upper()}},
-        {"$group": {
-            "_id": '$cursos.campus',
-            "cursos": {
-                "$addToSet": {
-                    "nome": "$cursos.curso",
-                    "modalidade": '$cursos.modalidade',
-                    'nive_do_curso': '$cursos.nivel_do_curso'
+        {'$unwind': '$cursos'},
+        {'$match': {'cursos.campus': params.get('campus').upper()}},
+        {'$group': {
+            '_id': '$cursos.campus',
+            'cursos': {
+                '$addToSet': {
+                    'nome': '$cursos.curso',
+                    'modalidade': '$cursos.modalidade',
+                    'nivel_do_curso': '$cursos.nivel_do_curso'
                 }
             }
         }},
