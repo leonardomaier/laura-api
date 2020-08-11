@@ -47,4 +47,4 @@ python server.py
 
 A documentação da API está disponível no link abaixo, caso esteja usando o Postman para testar, é só importá-la:
 
-[Clique aqui para acessar a documentaçãoI](https://documenter.getpostman.com/view/2227148/T1LLE81Y?version=latest#80471504-f2a9-4f3f-ad33-3971f512a6a7).
+[Clique aqui para acessar a documentação](https://documenter.getpostman.com/view/2227148/T1LLE81Y?version=latest#80471504-f2a9-4f3f-ad33-3971f512a6a7).
