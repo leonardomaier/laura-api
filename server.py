@@ -4,6 +4,8 @@ from flask_pymongo import PyMongo, abort
 from utils import json_encode, check_for_missing_params
 from functools import wraps
 
+from cache import Cache
+
 app = Flask(__name__)
 
 app.config['MONGO_URI'] = mongo_uri()
@@ -13,6 +15,8 @@ app.config['JSON_AS_ASCII'] = False
 mongo = PyMongo(app)
 
 collection = mongo.db[collection_name()]
+
+cache = Cache(threshold=10)
 
 
 @app.route("/", methods=['GET'])
@@ -59,12 +63,20 @@ def get_student(student_ra):
     if not student_ra:
         return (json_encode({'message': 'Missing student id'}), 400)
 
+    if cache.is_cached(student_ra):
+
+        cached_student = cache.retrieve(student_ra)
+
+        return (json_encode(cached_student), 200)
+
     student = collection.find_one({
         'ra': {'$eq': student_ra}
     })
 
     if not student:
         return (json_encode({'message': 'Student not found'}), 404)
+
+    cache.save(student_ra, student)
 
     return (json_encode(student), 200)
 
@@ -122,6 +134,8 @@ def post_student():
     data['idade_ate_31_12_2016'] = int(data['idade_ate_31_12_2016'])
 
     inserted_id = collection.insert_one(data).inserted_id
+
+    cache.save(data['ra'], data)
 
     return (json_encode({'message': 'Resource created'}), 201)
 
