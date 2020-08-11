@@ -16,10 +16,8 @@ if collection_name not in db.list_collection_names():
 
 collection = db[collection_name]
 
-# TODO: Create indexes
-
 collection.create_index([('ra', 1)])
-
+collection.create_index([('cursos.campus', 1)])
 
 collection.delete_many({})
 
