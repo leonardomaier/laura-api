@@ -1,7 +1,7 @@
 from database import mongo_uri, collection_name
 from flask import Flask, request
 from flask_pymongo import PyMongo, abort
-from utils import json_encode, is_missing_required_params
+from utils import json_encode, check_for_missing_params
 from functools import wraps
 
 app = Flask(__name__)
@@ -31,18 +31,24 @@ def get_students():
         'data_fim'
     ]
 
-    if (is_missing_required_params(params, required_params)):
-        abort(400)
+    missing_params = check_for_missing_params(params, required_params)
 
-    students = collection.find({
-        '$and': [
-            {'modalidade': {'$eq': params.get('modalidade')}},
-            {'data_inicio': {
-                '$gte': params.get('data_inicio'),
-                '$lte': params.get('data_fim')
-            }}
-        ]
-    }).sort([('data_inicio', -1)])
+    if len(missing_params):
+        return (json_encode({'errors': missing_params}), 400)
+
+    students = collection.aggregate([
+        {'$unwind': '$cursos'},
+        {
+            '$match': {
+                'cursos.modalidade': {'$eq': params.get('modalidade')},
+                'cursos.data_inicio': {
+                    '$gte': params.get('data_inicio'),
+                    '$lte': params.get('data_fim')
+                }
+            }
+        },
+        {'$sort': {'cursos.data_inicio': -1}}
+    ])
 
     return (json_encode(students), 200)
 
@@ -51,14 +57,14 @@ def get_students():
 def get_student(student_ra):
 
     if not student_ra:
-        abort(404)
+        return (json_encode({'message': 'Missing student id'}), 400)
 
     student = collection.find_one({
         'ra': {'$eq': student_ra}
     })
 
     if not student:
-        abort(404)
+        return (json_encode({'message': 'Student not found'}), 404)
 
     return (json_encode(student), 200)
 
@@ -75,20 +81,22 @@ def delete_student(student_ra):
         'campus'
     ]
 
-    if (is_missing_required_params(params, required_params)):
-        abort(400)
+    missing_params = check_for_missing_params(params, required_params)
+
+    if len(missing_params):
+        return (json_encode({'errors': missing_params}), 400)
 
     student = collection.delete_one({
         '$and': [
             {'ra': {'$eq': student_ra}},
-            {'campus': {'$eq': params.get('campus')}}
+            {'cursos.campus': {'$eq': params.get('campus')}}
         ]
     })
 
     deleted_count = student.deleted_count
 
     if (deleted_count <= 0):
-        return (json_encode({}), 202)
+        return (json_encode({'deleted_count': deleted_count}), 202)
 
     return (json_encode({'deleted_count': deleted_count}), 200)
 
@@ -102,23 +110,20 @@ def post_student():
         'nome',
         'idade_ate_31_12_2016',
         'ra',
-        'campus',
-        'municipio',
-        'curso',
-        'modalidade',
-        'nivel_do_curso',
-        'data_inicio'
+        'cursos'
     ]
 
-    if (is_missing_required_params(data, required_params)):
-        abort(400)
+    missing_params = check_for_missing_params(data, required_params)
+
+    if len(missing_params):
+        return (json_encode({'errors': missing_params}), 400)
 
     data['ra'] = int(data['ra'])
     data['idade_ate_31_12_2016'] = int(data['idade_ate_31_12_2016'])
 
     inserted_id = collection.insert_one(data).inserted_id
 
-    return (json_encode({inserted_id}), 201)
+    return (json_encode({'message': 'Resource created'}), 201)
 
 
 @app.route("/students/total", methods=['GET'])
@@ -132,20 +137,27 @@ def get_total_students():
         'data_fim'
     ]
 
-    if (is_missing_required_params(params, required_params)):
-        abort(400)
+    missing_params = check_for_missing_params(params, required_params)
 
-    total_students = collection.find({
-        'campus': {
-            '$eq': params.get('campus')
+    if len(missing_params):
+        return (json_encode({'errors': missing_params}), 400)
+
+    total_students = collection.aggregate([
+        {
+            '$match': {
+                'cursos.campus': params.get('campus').upper(),
+                'cursos.data_inicio': {
+                    '$gte': params.get('data_inicio'),
+                    '$lte': params.get('data_fim'),
+                }
+            }
         },
-        'data_inicio': {
-            '$gte': params.get('data_inicio'),
-            '$lte': params.get('data_fim')
+        {
+            '$count': 'total'
         }
-    }).count()
+    ])
 
-    return json_encode({'total': total_students})
+    return json_encode(total_students)
 
 
 @app.route("/courses", methods=['GET'])
@@ -157,15 +169,26 @@ def get_courses():
         'campus'
     ]
 
-    if (is_missing_required_params(params, required_params)):
-        abort(400)
+    missing_params = check_for_missing_params(params, required_params)
 
-    courses = collection.distinct('curso', {
-        '$and': [
-            {'campus': {'$eq': params.get('campus')}},
-            {'curso': {'$ne': None}}
-        ]
-    })
+    if len(missing_params):
+        return (json_encode({'errors': missing_params}), 400)
+
+    courses = collection.aggregate([
+        {'$project': {'_id': 0, 'campus': 1, 'cursos': 1}},
+        {"$unwind": "$cursos"},
+        {"$match": {"cursos.campus": params.get('campus').upper()}},
+        {"$group": {
+            "_id": '$cursos.campus',
+            "cursos": {
+                "$addToSet": {
+                    "nome": "$cursos.curso",
+                    "modalidade": '$cursos.modalidade',
+                    'nive_do_curso': '$cursos.nivel_do_curso'
+                }
+            }
+        }},
+    ])
 
     return (json_encode(courses), 200)
 

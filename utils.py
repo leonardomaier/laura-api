@@ -4,11 +4,19 @@ from bson.json_util import dumps
 import json
 
 
-def is_missing_required_params(args=[], required_params=[]):
+def check_for_missing_params(args=[], required_params=[]):
+
+    response = []
+
     for param in required_params:
+        
         if param not in args:
-            return True
-    return False
+            
+            response.append({ 
+                'message': 'Field [' + param + '] is required'
+            })
+    
+    return response
 
 
 def json_encode(documents):
