@@ -24,11 +24,11 @@ collection.delete_many({})
 def get_course_dict(row={}):
 
     return {
-        'campus': row['campus'].strip().upper(),
-        'municipio': row['municipio'].strip().upper(),
-        'curso': row['curso'].strip().upper(),
-        'modalidade': row['modalidade'].strip().upper(),
-        'nivel_do_curso': row['nivel_do_curso'].strip().upper(),
+        'campus': row['campus'].strip() if row['campus'] else None,
+        'municipio': row['municipio'].strip() if row['municipio'] else None,
+        'curso': row['curso'].strip() if row['curso'] else None,
+        'modalidade': row['modalidade'].strip() if row['modalidade'] else None,
+        'nivel_do_curso': row['nivel_do_curso'].strip() if row['nivel_do_curso'] else None,
         'data_inicio': row['data_inicio']
     }
 
@@ -68,7 +68,7 @@ try:
                 row['ra'] = int(float(row['ra']))
 
             to_insert.append({
-                'nome': row['nome'].strip().upper(),
+                'nome': row['nome'].strip() if row['nome'] else None,
                 'idade_ate_31_12_2016': row['idade_ate_31_12_2016'],
                 'ra': row['ra'],
                 'cursos': [get_course_dict(row)]
@@ -83,4 +83,4 @@ try:
 
 except FileNotFoundError:
 
-    print('Arquivo não encontrado: crie um arquivo de importação .csv no mesmo diretório deste arquivo')
+    print('Arquivo não encontrado: crie um arquivo de importação dataset_estudantes.csv no mesmo diretório deste arquivo')
