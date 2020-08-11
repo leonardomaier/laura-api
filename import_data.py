@@ -18,6 +18,9 @@ collection = db[collection_name]
 
 # TODO: Create indexes
 
+collection.create_index([('ra', 1)])
+
+
 collection.delete_many({})
 
 
