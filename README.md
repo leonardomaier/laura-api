@@ -8,6 +8,10 @@ Essas instruções farão com que você tenha uma cópia do projeto em execuçã
 
 ## Pré-requisitos
 
+Para continuar é necessário ter instalado os seguintes requisitos:
+
+- Python 3.8.5
+
 Primeiramente clone o projeto usando o seguinte comando:
 
 ```git
