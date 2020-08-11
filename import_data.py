@@ -20,28 +20,65 @@ collection = db[collection_name]
 
 collection.delete_many({})
 
+
+def get_course_dict(row={}):
+
+    return {
+        'campus': row['campus'].strip().upper(),
+        'municipio': row['municipio'].strip().upper(),
+        'curso': row['curso'].strip().upper(),
+        'modalidade': row['modalidade'].strip().upper(),
+        'nivel_do_curso': row['nivel_do_curso'].strip().upper(),
+        'data_inicio': row['data_inicio']
+    }
+
+
 try:
 
     with open('dataset_estudantes.csv', encoding='utf-8') as csv_file:
 
         csv_reader = csv.DictReader(csv_file, delimiter=',')
 
-        rows_counter = 0
+        row_counter = 0
+
+        to_insert = []
+
+        ra_and_index = {}
 
         for row in csv_reader:
 
+            if row['ra'] in ra_and_index:
+
+                index = ra_and_index.get(row['ra'])
+
+                to_insert[index]['cursos'].append(get_course_dict(row))
+
+                continue
+
+            elif row['ra']:
+
+                ra_and_index[row['ra']] = row_counter
+
             if row['idade_ate_31_12_2016']:
-                row['idade_ate_31_12_2016'] = int(
-                    float(row['idade_ate_31_12_2016']))
+
+                row['idade_ate_31_12_2016'] = int(float(row['idade_ate_31_12_2016']))
 
             if row['ra']:
+
                 row['ra'] = int(float(row['ra']))
 
-            collection.insert_one(row)
+            to_insert.append({
+                'nome': row['nome'].strip().upper(),
+                'idade_ate_31_12_2016': row['idade_ate_31_12_2016'],
+                'ra': row['ra'],
+                'cursos': [get_course_dict(row)]
+            })
 
-            rows_counter += 1
+            row_counter += 1
 
-        print('Inserted ' + str(rows_counter) + ' rows')
+        ids = collection.insert_many(to_insert).inserted_ids
+
+        print('Inserted ' + str(len(ids)) + ' students')
 
 
 except FileNotFoundError:
