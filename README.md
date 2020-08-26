@@ -1,5 +1,3 @@
-<img src="https://www.laura-br.com/wp-content/themes/Laura/images/logo.png" height="100"/>
-
 # API Laura
 
 
